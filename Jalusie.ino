@@ -1,4 +1,3 @@
-// include the library code:
 #include <LiquidCrystal.h>
 #include <Servo.h>
 
@@ -144,4 +143,3 @@ int richtige_richtung(double new_angle, double old_angle) {
     return -1;
   }
 }
-//Gedanken für zukunft: ein knopf kann Jalusie ganz offnen und den anderen kann die Jalousie ganz schließen
