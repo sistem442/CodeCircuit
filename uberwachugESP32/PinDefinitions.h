@@ -1,0 +1,24 @@
+#ifndef PIN_DEFINITIONS_H
+#define PIN_DEFINITIONS_H
+
+// Sensoren
+#define TEMP_SENSOR_PIN 32
+#define MOTOR_SPEED_PIN 35
+#define VIBRATION_SENSOR_PIN 5
+#define CURRENT_SENSOR_PIN 21
+
+// Aktuatoren
+#define MOTOR_ENABLE_PIN 17
+#define MOTOR_DIRETION_A_PIN 16
+#define MOTOR_DIRETION_B_PIN 4
+
+// Status
+#define ERROR_LED_PIN 18
+#define START_LED_PIN 23
+
+//Command
+#define CONNFIRMATION_BUTTON_PIN 15
+#define START_STOP_BUTTON_PIN 2
+#define MOTOR_DIRECTION_BUTTON_PIN 19
+
+#endif
