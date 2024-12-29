@@ -4,6 +4,7 @@
 #include "Utilities.h"
 #include "PinDefinitions.h"
 #include "Hardware.h"
+#include "WebSocketModule.h"
 
 unsigned long lastDebounceTimeStartStop = 0;
 unsigned long lastDebounceTimeConfirm = 0;
@@ -22,7 +23,7 @@ void setupControl() {
 }
 
 void updateControl() {
-  // Motor Start/Stop
+ // Motor Start/Stop
   if (debounce(START_STOP_BUTTON_PIN, lastDebounceTimeStartStop)) {
     if (on_flag == 0) {
       digitalWrite(START_LED_PIN, HIGH);
@@ -32,12 +33,14 @@ void updateControl() {
       digitalWrite(MOTOR_DIRETION_B_PIN, LOW);
       on_flag = 1;
       Serial.println("Motor turned on");
+      updateMotorStatus("running"); // Motorstatus aktualisieren
     } else {
       ledcWrite(0, 0);
       digitalWrite(MOTOR_ENABLE_PIN, LOW);
       digitalWrite(START_LED_PIN, LOW);
       on_flag = 0;
       Serial.println("Motor turned off");
+      updateMotorStatus("stopped", "Manually turned off"); // Motorstatus aktualisieren
     }
   }
 
@@ -66,10 +69,11 @@ void updateControl() {
     error_flag = 0;
     digitalWrite(ERROR_LED_PIN, LOW);
     Serial.println("Error cleared");
+    updateMotorStatus("running"); // Fehler zurücksetzen und Motorstatus aktualisieren
     on_flag = 0;
   }
 
-  // ** Überwachung von Temperatur, Strom und Vibrationen **
+  // Überwachung von Temperatur, Strom und Vibrationen
   float currentTemp = readTemperature();
   float current_mA = readCurrent();
   int vibration = readVibration();
@@ -77,16 +81,19 @@ void updateControl() {
   if (currentTemp > 30) {  // Beispielgrenzwert für Temperatur
     error_flag = 2;
     Serial.println("Error: Temperature too high! (" + String(currentTemp) + " °C)");
+    updateMotorStatus("stopped", "Temperature too high");
   }
 
   if (current_mA > 200) {  // Beispielgrenzwert für Strom
     error_flag = 3;
     Serial.println("Error: Current too high! (" + String(current_mA) + " mA)");
+    updateMotorStatus("stopped", "Current too high");
   }
 
   if (vibration == HIGH) {  // Vibration erkannt
     error_flag = 4;
     Serial.println("Error: Vibration detected!");
+    updateMotorStatus("stopped", "Vibration detected");
   }
 
   // Fehlerlogik

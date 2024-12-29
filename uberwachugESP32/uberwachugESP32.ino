@@ -20,12 +20,11 @@ void loop() {
   handleWebServer();
   handleWebSocket();
   updateControl();
-  readTemperature();
   
   // Sensordaten senden
   static unsigned long lastSendTime = 0;
   if (millis() - lastSendTime > 2000) {
-    sendSensorData();
+    sendSensorAndStatusData();
     lastSendTime = millis();
   }
 }
