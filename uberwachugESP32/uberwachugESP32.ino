@@ -20,6 +20,7 @@ void loop() {
   handleWebServer();
   handleWebSocket();
   updateControl();
+  handleRoot();
   
   // Sensordaten senden
   static unsigned long lastSendTime = 0;

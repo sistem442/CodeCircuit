@@ -4,7 +4,5 @@
 void setupWebServer();
 void handleWebServer();
 void handleRoot();
-void handleData();
-void handlePOT();
 
 #endif

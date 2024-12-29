@@ -33,14 +33,16 @@ void updateControl() {
       digitalWrite(MOTOR_DIRETION_B_PIN, LOW);
       on_flag = 1;
       Serial.println("Motor turned on");
-      updateMotorStatus("running"); // Motorstatus aktualisieren
+      motor_status = "running";
+      updateMotorStatus(motor_status); // Motorstatus aktualisieren
     } else {
       ledcWrite(0, 0);
       digitalWrite(MOTOR_ENABLE_PIN, LOW);
       digitalWrite(START_LED_PIN, LOW);
       on_flag = 0;
       Serial.println("Motor turned off");
-      updateMotorStatus("stopped", "Manually turned off"); // Motorstatus aktualisieren
+      motor_status = "stopped";
+      updateMotorStatus(motor_status, "Manually turned off"); // Motorstatus aktualisieren
     }
   }
 
@@ -51,11 +53,13 @@ void updateControl() {
       digitalWrite(MOTOR_DIRETION_B_PIN, HIGH);
       direction_flag = 1;
       Serial.println("Direction changed");
+      updateMotorStatus(motor_status, "");
     } else {
       digitalWrite(MOTOR_DIRETION_A_PIN, HIGH);
       digitalWrite(MOTOR_DIRETION_B_PIN, LOW);
       direction_flag = 0;
       Serial.println("Direction reset");
+      updateMotorStatus(motor_status, "");
     }
   }
 
@@ -63,13 +67,14 @@ void updateControl() {
   potValue = analogRead(MOTOR_SPEED_PIN);
   speed = map(potValue, 0, 4095, 0, 255);  // Anpassung für 12-Bit ADC des ESP32
   ledcWrite(0, speed);  
+  updateMotorStatus(motor_status, ""); 
 
   // Fehler bestätigen
   if (debounce(CONNFIRMATION_BUTTON_PIN, lastDebounceTimeConfirm)) {
     error_flag = 0;
     digitalWrite(ERROR_LED_PIN, LOW);
     Serial.println("Error cleared");
-    updateMotorStatus("running"); // Fehler zurücksetzen und Motorstatus aktualisieren
+    updateMotorStatus("Turned off"); // Fehler zurücksetzen und Motorstatus aktualisieren
     on_flag = 0;
   }
 
@@ -78,7 +83,7 @@ void updateControl() {
   float current_mA = readCurrent();
   int vibration = readVibration();
 
-  if (currentTemp > 30) {  // Beispielgrenzwert für Temperatur
+  if (currentTemp > 20) {  // Beispielgrenzwert für Temperatur
     error_flag = 2;
     Serial.println("Error: Temperature too high! (" + String(currentTemp) + " °C)");
     updateMotorStatus("stopped", "Temperature too high");

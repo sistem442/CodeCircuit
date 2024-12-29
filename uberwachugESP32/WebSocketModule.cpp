@@ -3,6 +3,7 @@
 #include <ArduinoJson.h>
 #include "Hardware.h"
 #include "Control.h"
+#include "globals.h"
 
 // WebSocket-Server auf Port 81
 WebSocketsServer webSocket(81);
@@ -49,13 +50,13 @@ void sendSensorAndStatusData() {
   StaticJsonDocument<300> doc;
 
   // Sensordaten hinzufügen
-  doc["temperature"] = readTemperature(); // Sensor-Funktion implementieren
-  doc["current"] = readCurrent();         // Sensor-Funktion implementieren
-  doc["vibration"] = readVibration();     // Sensor-Funktion implementieren
-
-  // Motorstatus hinzufügen
+  doc["temperature"] = readTemperature();
+  doc["current"] = readCurrent();         
+  doc["vibration"] = readVibration();     
   doc["motor_status"] = motorStatus;
   doc["error_message"] = errorMessage;
+  doc["speed"] = speed;
+  doc["direction"] = direction_flag == 0 ? "Vorwärts" : "Rückwärts";
 
   // JSON-Dokument in String serialisieren
   String jsonString;
@@ -67,7 +68,17 @@ void sendSensorAndStatusData() {
 
 // Beispiel: Aktualisierung von Motorstatus und Fehler
 void updateMotorStatus(String status, String error) {
-  motorStatus = status;
-  errorMessage = error;
-  sendSensorAndStatusData(); // Aktualisierte Daten an alle Clients senden
+  // Setze den Motorstatus nur, wenn kein Fehlerflag aktiv ist
+  if (error_flag == 0) {
+    motorStatus = status; // Normaler Status
+    errorMessage = error; // Leere Fehlernachricht
+  }
+
+  // Falls Fehlerflag aktiv, Fehlerstatus beibehalten
+  if (error_flag > 0) {
+    motorStatus = "stopped";  // Motor bleibt gestoppt
+    errorMessage = error;  // Fehlernachricht anzeigen
+  }
+
+  sendSensorAndStatusData(); // Daten an alle Clients senden
 }
