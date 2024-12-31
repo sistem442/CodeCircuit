@@ -12,6 +12,7 @@ extern int speed;
 extern double tempC;
 extern double current_mA; 
 extern int vibration;
-extern String motor_status;
+extern String motorStatus;
+extern String errorMessage;
 
 #endif // GLOBALS_H

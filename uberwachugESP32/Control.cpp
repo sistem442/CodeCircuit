@@ -23,7 +23,18 @@ void setupControl() {
 }
 
 void updateControl() {
- // Motor Start/Stop
+
+  potValue = analogRead(MOTOR_SPEED_PIN);
+  speed = map(potValue, 0, 4095, 0, 255);  // Anpassung für 12-Bit ADC des ESP32
+  ledcWrite(0, speed);
+  updateMotorStatus(motorStatus, errorMessage);
+
+   // Überwachung von Temperatur, Strom und Vibrationen
+  float currentTemp = readTemperature();
+  float current_mA = readCurrent();
+  int vibration = readVibration();
+
+  // Motor Start/Stop
   if (debounce(START_STOP_BUTTON_PIN, lastDebounceTimeStartStop)) {
     if (on_flag == 0) {
       digitalWrite(START_LED_PIN, HIGH);
@@ -33,16 +44,14 @@ void updateControl() {
       digitalWrite(MOTOR_DIRETION_B_PIN, LOW);
       on_flag = 1;
       Serial.println("Motor turned on");
-      motor_status = "running";
-      updateMotorStatus(motor_status); // Motorstatus aktualisieren
+      motorStatus = "Running";
     } else {
       ledcWrite(0, 0);
       digitalWrite(MOTOR_ENABLE_PIN, LOW);
       digitalWrite(START_LED_PIN, LOW);
       on_flag = 0;
       Serial.println("Motor turned off");
-      motor_status = "stopped";
-      updateMotorStatus(motor_status, "Manually turned off"); // Motorstatus aktualisieren
+      motorStatus = "Stopped, manually turned off";
     }
   }
 
@@ -53,52 +62,45 @@ void updateControl() {
       digitalWrite(MOTOR_DIRETION_B_PIN, HIGH);
       direction_flag = 1;
       Serial.println("Direction changed");
-      updateMotorStatus(motor_status, "");
+      motorStatus = "Running, Direction changed";
     } else {
       digitalWrite(MOTOR_DIRETION_A_PIN, HIGH);
       digitalWrite(MOTOR_DIRETION_B_PIN, LOW);
       direction_flag = 0;
       Serial.println("Direction reset");
-      updateMotorStatus(motor_status, "");
+      motorStatus = "Running, Direction reset";
     }
   }
-
-   // ** Speed Control **
-  potValue = analogRead(MOTOR_SPEED_PIN);
-  speed = map(potValue, 0, 4095, 0, 255);  // Anpassung für 12-Bit ADC des ESP32
-  ledcWrite(0, speed);  
-  updateMotorStatus(motor_status, ""); 
 
   // Fehler bestätigen
   if (debounce(CONNFIRMATION_BUTTON_PIN, lastDebounceTimeConfirm)) {
     error_flag = 0;
     digitalWrite(ERROR_LED_PIN, LOW);
     Serial.println("Error cleared");
-    updateMotorStatus("Turned off"); // Fehler zurücksetzen und Motorstatus aktualisieren
+    motorStatus = "Turned off.";
+    errorMessage = "No errors.";
     on_flag = 0;
   }
-
-  // Überwachung von Temperatur, Strom und Vibrationen
-  float currentTemp = readTemperature();
-  float current_mA = readCurrent();
-  int vibration = readVibration();
 
   if (currentTemp > 20) {  // Beispielgrenzwert für Temperatur
     error_flag = 2;
     Serial.println("Error: Temperature too high! (" + String(currentTemp) + " °C)");
-    updateMotorStatus("stopped", "Temperature too high");
+    motorStatus = "Stopped!";
+    errorMessage = "Temperature too high!";
   }
 
   if (current_mA > 200) {  // Beispielgrenzwert für Strom
     error_flag = 3;
     Serial.println("Error: Current too high! (" + String(current_mA) + " mA)");
-    updateMotorStatus("stopped", "Current too high");
+    motorStatus = "Stopped!";
+    errorMessage = "Current too high!";
   }
 
   if (vibration == HIGH) {  // Vibration erkannt
     error_flag = 4;
     Serial.println("Error: Vibration detected!");
-    updateMotorStatus("stopped", "Vibration detected");
+    motorStatus = "Stopped!";
+    errorMessage = "Vibration detected!";
   }
 
   // Fehlerlogik

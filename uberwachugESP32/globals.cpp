@@ -10,4 +10,5 @@ int error_flag = 0;
 double tempC = 0;
 double current_mA = 0;
 int vibration = 0;
-String motor_status = "Turned off";
+String motorStatus = "Turned off";
+String errorMessage = "";

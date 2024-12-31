@@ -8,9 +8,6 @@
 // WebSocket-Server auf Port 81
 WebSocketsServer webSocket(81);
 
-// Globale Variablen für Motorstatus und Fehlerbeschreibung
-String motorStatus = "running"; // Alternativ: "stopped"
-String errorMessage = "";       // Fehlerbeschreibung
 
 // Prototypen
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
