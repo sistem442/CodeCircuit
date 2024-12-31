@@ -14,5 +14,8 @@ extern double current_mA;
 extern int vibration;
 extern String motorStatus;
 extern String errorMessage;
+extern String receivedCommand; // Befehl von WebSocket
+extern String receivedSpeed;   // Geschwindigkeitswert von WebSocket
+extern bool isPhysicalControl; // Steuerungsmodus
 
 #endif // GLOBALS_H

@@ -12,3 +12,6 @@ double current_mA = 0;
 int vibration = 0;
 String motorStatus = "Turned off";
 String errorMessage = "";
+String receivedCommand = "";   // Standard: leer
+String receivedSpeed = "";     // Standard: leer
+bool isPhysicalControl = true; // Standard: physische Steuerung

@@ -30,17 +30,37 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       Serial.printf("[%u] Client verbunden\n", num);
       sendSensorAndStatusData(); // Sende Initialdaten an den neuen Client
       break;
+
     case WStype_DISCONNECTED:
       Serial.printf("[%u] Client getrennt\n", num);
       break;
-    case WStype_TEXT:
+
+    case WStype_TEXT: {
       Serial.printf("[%u] Nachricht empfangen: %s\n", num, payload);
-      // Optional: Verarbeitung von Nachrichten vom Client
+      StaticJsonDocument<200> doc;
+      DeserializationError error = deserializeJson(doc, payload, length);
+
+      if (!error) {
+        if (doc.containsKey("command")) {
+          receivedCommand = doc["command"].as<String>(); // Speichere den empfangenen Befehl
+          Serial.printf("Empfangener Befehl: %s\n", receivedCommand.c_str());
+        }
+
+        if (doc.containsKey("speed")) {
+          receivedSpeed = doc["speed"].as<String>(); // Speichere die empfangene Geschwindigkeit
+          Serial.printf("Empfangene Geschwindigkeit: %s\n", receivedSpeed.c_str());
+        }
+      } else {
+        Serial.println("Fehler beim Parsen der WebSocket-Nachricht");
+      }
       break;
+    }
+
     default:
       break;
   }
 }
+
 
 // Funktion zum Senden von Sensordaten und Motorstatus
 void sendSensorAndStatusData() {
@@ -54,6 +74,7 @@ void sendSensorAndStatusData() {
   doc["error_message"] = errorMessage;
   doc["speed"] = speed;
   doc["direction"] = direction_flag == 0 ? "Vorwärts" : "Rückwärts";
+  doc["control_mode"] = isPhysicalControl ? "Physical" : "Web";
 
   // JSON-Dokument in String serialisieren
   String jsonString;
