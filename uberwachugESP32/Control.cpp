@@ -10,8 +10,13 @@ unsigned long lastDebounceTimeStartStop = 0;
 unsigned long lastDebounceTimeConfirm = 0;
 unsigned long lastDebounceTimeDirection = 0;
 
+// PWM-Kanal initialisieren
+    const int pwmChannel = 0;      // PWM-Kanal 0
+    const int pwmFrequency = 5000; // PWM-Frequenz 5 kHz
+    const int pwmResolution = 8;   // 8-Bit-Auflösung
+
 void setupControl() {
-  pinMode(MOTOR_ENABLE_PIN, OUTPUT);
+  pinMode(MOTOR_SPEED_PIN, OUTPUT);
   pinMode(MOTOR_DIRETION_A_PIN, OUTPUT);
   pinMode(MOTOR_DIRETION_B_PIN, OUTPUT);
   pinMode(START_STOP_BUTTON_PIN, INPUT);
@@ -33,26 +38,26 @@ void updateControl() {
   isPhysicalControl = digitalRead(CONTROL_MODE_PIN) == LOW;  // LOW = physische Steuerung
 
   if (isPhysicalControl) {
-    potValue = analogRead(MOTOR_SPEED_PIN);
+    potValue = analogRead(MOTOR_SPEED_POTENTIOMETER_PIN);
     speed = map(potValue, 0, 4095, 0, 255);  // Anpassung für 12-Bit ADC des ESP32
-    ledcWrite(0, speed);
     updateMotorStatus(motorStatus, errorMessage);
 
+    if(on_flag == 1){
+      analogWrite(MOTOR_SPEED_PIN, speed);
+    }
     
     // Motor Start/Stop
     if (debounce(START_STOP_BUTTON_PIN, lastDebounceTimeStartStop)) {
       if (on_flag == 0) {
         digitalWrite(START_LED_PIN, HIGH);
-        digitalWrite(MOTOR_ENABLE_PIN, HIGH);
-        ledcWrite(0, speed);
+        analogWrite(MOTOR_SPEED_PIN, speed);
         digitalWrite(MOTOR_DIRETION_A_PIN, HIGH);
         digitalWrite(MOTOR_DIRETION_B_PIN, LOW);
         on_flag = 1;
         Serial.println("Motor turned on");
         motorStatus = "Running";
       } else {
-        ledcWrite(0, 0);
-        digitalWrite(MOTOR_ENABLE_PIN, LOW);
+        analogWrite(MOTOR_SPEED_PIN, 0);
         digitalWrite(START_LED_PIN, LOW);
         on_flag = 0;
         Serial.println("Motor turned off");
@@ -83,7 +88,7 @@ void updateControl() {
       digitalWrite(ERROR_LED_PIN, LOW);
       Serial.println("Error cleared");
       motorStatus = "Turned off.";
-      errorMessage = "No errors.";
+      errorMessage = "";
       on_flag = 0;
     }
   } else {
@@ -92,15 +97,13 @@ void updateControl() {
       if (receivedCommand == "start_stop") {
         if (on_flag == 0 && error_flag == 0) {
           digitalWrite(START_LED_PIN, HIGH);
-          digitalWrite(MOTOR_ENABLE_PIN, HIGH);
-          ledcWrite(0, speed);
+          analogWrite(MOTOR_SPEED_PIN, speed);
           digitalWrite(MOTOR_DIRETION_A_PIN, HIGH);
           digitalWrite(MOTOR_DIRETION_B_PIN, LOW);
           on_flag = 1;
           motorStatus = "Running";
         } else {
-          ledcWrite(0, 0);
-          digitalWrite(MOTOR_ENABLE_PIN, LOW);
+          analogWrite(MOTOR_SPEED_PIN, 0);
           digitalWrite(START_LED_PIN, LOW);
           on_flag = 0;
           motorStatus = "Stopped, manually turned off";
@@ -129,19 +132,19 @@ void updateControl() {
         error_flag = 0;
         digitalWrite(ERROR_LED_PIN, LOW);
         motorStatus = "Turned off.";
-        errorMessage = "No errors.";
+        errorMessage = "";
         on_flag = 0;
         receivedCommand = "";
       }
     }
     if (!receivedSpeed.isEmpty()) {
       speed = receivedSpeed.toInt();
-      ledcWrite(0, speed);
+      analogWrite(MOTOR_SPEED_PIN, speed);
       receivedSpeed = "";
     }
   }
 
-  if (currentTemp > 20) {  // Beispielgrenzwert für Temperatur
+  if (currentTemp > 25) {  // Beispielgrenzwert für Temperatur
     error_flag = 2;
     Serial.println("Error: Temperature too high! (" + String(currentTemp) + " °C)");
     motorStatus = "Stopped!";
@@ -164,8 +167,8 @@ void updateControl() {
 
   // Fehlerlogik
   if (error_flag > 0) {
-    ledcWrite(0, 0);  // Motor ausschalten
-    digitalWrite(MOTOR_ENABLE_PIN, LOW);
+    on_flag = 0;
+    analogWrite(MOTOR_SPEED_PIN, 0);
     digitalWrite(ERROR_LED_PIN, HIGH);
     digitalWrite(START_LED_PIN, LOW);
   }
