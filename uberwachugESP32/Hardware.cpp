@@ -27,6 +27,7 @@ float readTemperature() {
   double tempK = log(10000.0 * ((4095.0 / tempReading - 1)));
   tempK = 1 / (0.001129148 + (0.000234125 + (0.0000000876741 * tempK * tempK)) * tempK);
   tempC = tempK - 273.15;
+  tempC = tempC + 4; //Offset
   if (tempC > 30) {
     error_flag = 2;
   }

@@ -89,7 +89,7 @@ String webpageCode = R"rawliteral(
   <!-- Sensordaten -->
   <div class="data">
     <p>Temperatur: <span id="temperature">--</span> °C</p>
-    <p>Strom: <span id="current">--</span> A</p>
+    <p>Strom: <span id="current">--</span> mA</p>
     <p>Vibration: <span id="vibration">--</span></p>
     <p>Richtung: <span id="direction">--</span></p>
   </div>
